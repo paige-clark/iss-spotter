@@ -14,6 +14,8 @@ const fetchMyIP = function(callback) {
       callback(error, null);
       return;
     }
+
+    const ip = JSON.parse(body).ip;
     // if non-200 status, assume server error
     if (response.statusCode !== 200) {
       const msg = `Status Code ${response.statusCode} when fetching IP. Response: ${body}`;
@@ -21,7 +23,6 @@ const fetchMyIP = function(callback) {
       return;
     }
     
-    const ip = JSON.parse(body).ip;
     callback(null, ip);
 
     // console.error('error:', error); // Print the error if one occurred
@@ -31,6 +32,24 @@ const fetchMyIP = function(callback) {
 };
 
 const fetchCoordsByIP = function(ip, callback) {
+
+  request(`http://ipwho.is/${ip}`, function(error, response, body) {
+    if (error) {
+      callback(error, null);
+      return;
+    }
+    const parsedBody = JSON.parse(body);
+
+    if (!parsedBody.success) {
+      const message = `Success status was ${parsedBody.success}. Server message says: ${parsedBody.message} when fetching for IP ${parsedBody.ip}`;
+      callback(Error(message), null);
+      return;
+    }
+
+    const { latitude, longitude } = parsedBody;
+    callback(null, { latitude, longitude });
+
+  });
 
 };
 
